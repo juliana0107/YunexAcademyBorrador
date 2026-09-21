@@ -1673,3 +1673,23 @@ El dashboard no gestiona estados propios. Consume estados de HU-001, HU-002, HU-
 - **Jest + React Testing Library + Supertest**: Testing unitario e integración.
 
 ## Resumen del stack
+
+
+- Frontend:     React + Vite + TypeScript + TailwindCSS + TanStack Query + Recharts + dnd-kit
+- Backend:      Node.js + Express + TypeScript + PostgreSQL (Neon) + node-cache
+- Auth:         BetterAuth + JWT + HTTP-only cookies
+- Video:        Almacenamiento local (MVP) → S3 + CloudFront → VdoCipher
+- Protección:   Screenshot Privacy Protection Web + FFmpeg watermark
+- Testing:      Jest + React Testing Library + Supertest
+- DevOps:       Docker + GitHub Actions + Vercel/Render
+---
+
+# Conclusión
+
+El proyecto **Escuela de Formación** es una plataforma LMS interna con requisitos específicos de interactividad (12 tipos de preguntas), estructura de contenido (capacitaciones con submódulos), seguridad de contenido (bloqueo de capturas), gestión de permisos (roles) y **visualización de indicadores operacionales (dashboard)**.
+
+El stack recomendado —**React + Vite + TypeScript en frontend, Node.js + Express + PostgreSQL en backend, almacenamiento local con StorageService abstracto, y Recharts para el dashboard**— ofrece un balance entre buenas prácticas modernas, velocidad de desarrollo y robustez.
+
+La decisión más crítica sigue siendo la **protección de contenido**: se debe comunicar claramente al cliente que el bloqueo de capturas en navegadores web es **best effort** y que para garantía total se requiere DRM con cifrado (VdoCipher), que tiene costo adicional pero es la única forma de protección robusta.
+
+El **dashboard** cierra el ciclo de valor del producto: no solo permite crear y consumir capacitaciones, sino también **medir su impacto** con 14 indicadores que cubren estado del contenido, usuarios, progreso, desempeño en evaluaciones, seguridad (intentos de captura) y calidad pedagógica (preguntas más falladas).
