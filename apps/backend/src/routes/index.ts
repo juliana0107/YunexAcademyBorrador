@@ -20,6 +20,10 @@ import assessmentRoutes, {
 import questionRoutes, {
   assessmentQuestionsRouter,
 } from '../modules/assessments/questions/question.routes.js';
+import attemptRoutes, {
+  assessmentAttemptsRouter,
+  meAttemptsRouter,
+} from '../modules/assessments/attempts/attempt.routes.js';
 
 const router = Router();
 
@@ -35,8 +39,11 @@ router.use('/submodules/:submoduleId/assessments', submoduleAssessmentsRouter);
 router.use('/videos', videoRoutes);
 router.use('/videos/:videoId/progress', videoProgressRouter);
 router.use('/me/progress', meProgressRouter);
+router.use('/me/attempts', meAttemptsRouter);
 router.use('/assessments', assessmentRoutes);
 router.use('/assessments/:assessmentId/questions', assessmentQuestionsRouter);
+router.use('/assessments/:assessmentId/attempts', assessmentAttemptsRouter);
 router.use('/questions', questionRoutes);
+router.use('/attempts', attemptRoutes);
 
 export default router;

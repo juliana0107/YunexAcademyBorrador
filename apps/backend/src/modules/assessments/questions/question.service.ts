@@ -2,6 +2,7 @@ import { ForbiddenError, NotFoundError } from '../../../shared/errors/http-error
 import { pool } from '../../../config/database.config.js';
 import * as repo from './question.repository.js';
 import { toDetail, toListItem } from './question.mapper.js';
+import * as attemptRepo from '../attempts/attempt.repository.js';
 import type {
   CreateQuestionInput,
   UpdateQuestionInput,
@@ -20,13 +21,27 @@ async function assertAssessmentEditable(assessmentId: string): Promise<void> {
   if (result.rows[0].status === 'ARCHIVED') {
     throw new ForbiddenError('Cannot modify questions of an archived assessment');
   }
-  // Verificar curso no archivado
   const courseResult = await pool.query<{ status: string }>(
     'SELECT status FROM training_courses WHERE id = $1',
     [result.rows[0].training_course_id]
   );
   if (courseResult.rows[0]?.status === 'ARCHIVED') {
     throw new ForbiddenError('Cannot modify questions of an archived training course');
+  }
+}
+
+/**
+ * RN-ATTEMPT-11: no se puede modificar una pregunta si ya tiene intentos.
+ * Esto protege la calificación: si un estudiante ya respondió una pregunta,
+ * cambiar su contenido dejaría el intento en un estado inconsistente.
+ */
+async function assertNoActiveAttempts(questionId: string): Promise<void> {
+  const hasAttempts = await attemptRepo.hasAttemptsForQuestion(questionId);
+  if (hasAttempts) {
+    throw new ForbiddenError(
+      'Cannot modify this question because it already has attempts. ' +
+        'Archive the assessment or create a new question instead.'
+    );
   }
 }
 
@@ -49,7 +64,6 @@ export async function create(
 
   const order = input.order ?? (await repo.getNextOrder(assessmentId));
 
-  // Normalizar payload según tipo
   let payload: Record<string, unknown> = input.payload ?? {};
 
   if (input.type === 'SINGLE_CHOICE' || input.type === 'MULTIPLE_CHOICE') {
@@ -77,6 +91,7 @@ export async function update(
   if (!existing) throw new NotFoundError('Question not found');
 
   await assertAssessmentEditable(existing.assessmentId);
+  await assertNoActiveAttempts(id);
 
   const updated = await repo.update(id, {
     statement: input.statement,
@@ -95,6 +110,7 @@ export async function reorder(id: string, order: number): Promise<QuestionDetail
   if (!existing) throw new NotFoundError('Question not found');
 
   await assertAssessmentEditable(existing.assessmentId);
+  await assertNoActiveAttempts(id);
 
   const updated = await repo.reorder(id, order);
   if (!updated) throw new NotFoundError('Question not found');
@@ -106,6 +122,7 @@ export async function remove(id: string): Promise<void> {
   if (!existing) throw new NotFoundError('Question not found');
 
   await assertAssessmentEditable(existing.assessmentId);
+  await assertNoActiveAttempts(id);
 
   await repo.remove(id);
 }
