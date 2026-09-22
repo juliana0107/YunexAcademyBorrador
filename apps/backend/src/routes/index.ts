@@ -8,6 +8,11 @@ import submoduleRoutes, {
 import videoRoutes, {
   submoduleVideosRouter,
 } from '../modules/videos/video.routes.js';
+import {
+  videoProgressRouter,
+  submoduleProgressRouter,
+  meProgressRouter,
+} from '../modules/video-progress/video-progress.routes.js';
 
 const router = Router();
 
@@ -17,6 +22,9 @@ router.use('/training-courses', trainingCourseRoutes);
 router.use('/training-courses/:courseId/submodules', courseSubmodulesRouter);
 router.use('/submodules', submoduleRoutes);
 router.use('/submodules/:submoduleId/videos', submoduleVideosRouter);
+router.use('/submodules/:submoduleId/progress', submoduleProgressRouter);
 router.use('/videos', videoRoutes);
+router.use('/videos/:videoId/progress', videoProgressRouter);
+router.use('/me/progress', meProgressRouter);
 
 export default router;
