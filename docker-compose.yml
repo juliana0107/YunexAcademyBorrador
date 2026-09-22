@@ -16,6 +16,45 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - yunex-net
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: yunex-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://yunex:yunex@postgres:5432/yunex_academy
+      JWT_SECRET: change-me-in-production
+      CORS_ORIGIN: http://localhost:8080
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - yunex-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: yunex-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - yunex-net
 
 volumes:
   postgres-data:
+
+networks:
+  yunex-net:
+    driver: bridge

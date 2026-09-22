@@ -12,7 +12,13 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@yunexacademy/shared-types': fileURLToPath(
+          new URL('../../packages/shared-types/src/index.ts', import.meta.url)
+        ),
       },
+    },
+    optimizeDeps: {
+      exclude: ['@yunexacademy/shared-types'],
     },
     server: {
       port: 5173,
