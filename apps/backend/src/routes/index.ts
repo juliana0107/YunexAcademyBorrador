@@ -5,6 +5,9 @@ import trainingCourseRoutes from '../modules/training-courses/training-course.ro
 import submoduleRoutes, {
   courseSubmodulesRouter,
 } from '../modules/submodules/submodule.routes.js';
+import videoRoutes, {
+  submoduleVideosRouter,
+} from '../modules/videos/video.routes.js';
 
 const router = Router();
 
@@ -13,5 +16,7 @@ router.use('/users', userRoutes);
 router.use('/training-courses', trainingCourseRoutes);
 router.use('/training-courses/:courseId/submodules', courseSubmodulesRouter);
 router.use('/submodules', submoduleRoutes);
+router.use('/submodules/:submoduleId/videos', submoduleVideosRouter);
+router.use('/videos', videoRoutes);
 
 export default router;
