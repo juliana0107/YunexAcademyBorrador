@@ -1,21 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AppShell } from '@/components/layout/AppShell';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { UserListPage } from '@/features/users/pages/UserListPage';
 
 export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Pública */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Privadas */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route element={<AppShell />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/users" element={<UserListPage />} />
+          </Route>
         </Route>
 
-        {/* Fallbacks */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
