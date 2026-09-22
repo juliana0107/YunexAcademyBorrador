@@ -1,4 +1,5 @@
-import { BookOpen, Pencil, Trash2, Eye, Archive, Upload } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Pencil, Trash2, Archive, Upload } from 'lucide-react';
 import type { TrainingCourseStatus } from '@yunexacademy/shared-types';
 import { TrainingCourseStatusBadge } from './TrainingCourseStatusBadge';
 import { TrainingCourseLevelBadge } from './TrainingCourseLevelBadge';
@@ -19,9 +20,12 @@ export function TrainingCourseCard({ course, onEdit, onDelete, onChangeStatus }:
           <BookOpen className="w-5 h-5 text-brand-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+          <Link
+            to={`/training-courses/${course.id}`}
+            className="text-base font-semibold text-gray-900 line-clamp-2 hover:text-brand-600 transition-colors"
+          >
             {course.title}
-          </h3>
+          </Link>
           <p className="text-sm text-gray-500 line-clamp-2 mt-1">
             {course.description || 'Sin descripción'}
           </p>
