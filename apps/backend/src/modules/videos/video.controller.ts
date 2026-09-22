@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import * as service from './video.service.js';
 import { getStorage } from './storage/storage.factory.js';
-import { BadRequestError } from '../../shared/errors/http-error.js';
+import { BadRequestError, UnauthorizedError } from '../../shared/errors/http-error.js';
+import { issueTicket, validateTicket } from './stream-ticket.service.js';
 
 export async function listBySubmodule(req: Request, res: Response): Promise<void> {
   const videos = await service.listBySubmodule(req.params.submoduleId);
@@ -23,7 +24,6 @@ export async function upload(req: Request, res: Response): Promise<void> {
     throw new BadRequestError('Video file is required');
   }
 
-  // El submoduleId viene de la URL
   const body = {
     ...req.body,
     submoduleId: req.params.submoduleId,
@@ -48,14 +48,36 @@ export async function remove(req: Request, res: Response): Promise<void> {
   res.status(204).send();
 }
 
+export async function generateStreamTicket(req: Request, res: Response): Promise<void> {
+  // Verifica que el video existe antes de dar un ticket
+  const video = await service.getById(req.params.id);
+
+  const { ticket, expiresIn } = issueTicket(req.user!.id, video.id);
+
+  res.status(200).json({
+    success: true,
+    data: { ticket, expiresIn },
+  });
+}
+
 export async function stream(req: Request, res: Response): Promise<void> {
+  // Validar ticket desde query string
+  const ticket = req.query.ticket as string | undefined;
+
+  if (!ticket) {
+    throw new UnauthorizedError('Missing stream ticket');
+  }
+
+  const validated = validateTicket(ticket, req.params.id);
+  if (!validated) {
+    throw new UnauthorizedError('Invalid or expired stream ticket');
+  }
+
   const info = await service.getStreamInfo(req.params.id);
   const rangeHeader = req.headers.range;
-
   const storage = getStorage();
 
   if (!rangeHeader) {
-    // Sin Range: devolver todo el archivo
     const buffer = await storage.read(info.storagePath);
     res.writeHead(200, {
       'Content-Length': buffer.length.toString(),
@@ -67,7 +89,6 @@ export async function stream(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Parsear "Range: bytes=start-end"
   const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
   if (!match) {
     res.status(416).json({
@@ -92,13 +113,11 @@ export async function stream(req: Request, res: Response): Promise<void> {
   }
 
   if (!startStr && endStr) {
-    // Suffix range: "bytes=-500" → últimos 500 bytes
     start = Math.max(0, info.size - end);
     end = info.size - 1;
   }
 
   const chunkSize = end - start + 1;
-
   const { stream: rangeStream } = await storage.readRange(info.storagePath, start, end);
 
   res.writeHead(206, {

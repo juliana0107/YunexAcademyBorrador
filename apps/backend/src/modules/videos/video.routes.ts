@@ -13,7 +13,6 @@ import {
   listVideosQuerySchema,
 } from './video.schema.js';
 
-// Multer en memoria: guardamos el buffer y luego lo pasamos al Storage
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: env.MAX_VIDEO_SIZE_MB * 1024 * 1024 },
@@ -35,7 +34,6 @@ submoduleVideosRouter.post(
   requirePermission('videos:write'),
   upload.single('file'),
   (req, _res, next) => {
-    // Inyecta el submoduleId de la URL en el body
     req.body = { ...req.body, submoduleId: req.params.submoduleId };
     next();
   },
@@ -46,14 +44,11 @@ submoduleVideosRouter.post(
 // Router plano: /videos/...
 const router = Router();
 
-router.use(authMiddleware);
+// El stream se autentica por TICKET, no por header Authorization.
+router.get('/:id/stream', asyncHandler(controller.stream));
 
-router.get(
-  '/',
-  requirePermission('videos:read'),
-  validate(listVideosQuerySchema, 'query'),
-  asyncHandler(controller.list)
-);
+// Todo lo demás requiere auth (header Authorization)
+router.use(authMiddleware);
 
 router.get(
   '/:id',
@@ -61,10 +56,10 @@ router.get(
   asyncHandler(controller.getById)
 );
 
-router.get(
-  '/:id/stream',
+router.post(
+  '/:id/stream-ticket',
   requirePermission('videos:read'),
-  asyncHandler(controller.stream)
+  asyncHandler(controller.generateStreamTicket)
 );
 
 router.patch(
