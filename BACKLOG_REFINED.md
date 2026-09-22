@@ -2,7 +2,7 @@
 
 ## Introducción
 
-Este documento es el resultado del refinamiento del backlog de la **Escuela de Formación**, una plataforma interna de gestión de capacitaciones para los colaboradores de la empresa. La solución permite almacenar cursos, gestionar videos, administrar evaluaciones dinámicas, controlar permisos por roles, proteger el contenido contra capturas no autorizadas y **visualizar indicadores de progreso y desempeño mediante un dashboard operacional**.
+Este documento es el resultado del refinamiento del backlog de la **Yunex Academy**, una plataforma interna de gestión de capacitaciones para los colaboradores de la empresa. La solución permite almacenar cursos, gestionar videos, administrar evaluaciones dinámicas, controlar permisos por roles, proteger el contenido contra capturas no autorizadas y **visualizar indicadores de progreso y desempeño mediante un dashboard operacional**.
 
 El backlog original plantea dos actores principales: **Administrador** (gestiona contenido, usuarios, roles, evaluaciones y permisos) y **Estudiante** (trabajador que consume capacitaciones y presenta evaluaciones). Esta versión incorpora un tercer bloque funcional: el **Dashboard**, que consume datos de todas las historias anteriores para mostrar métricas de avance, desempeño y uso de la plataforma.
 

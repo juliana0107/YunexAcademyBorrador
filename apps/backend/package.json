@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
-    "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit"
-  },
+  "dev": "tsx watch src/server.ts",
+  "build": "tsc -p tsconfig.build.json",
+  "start": "node dist/server.js",
+  "db:migrate": "tsx src/database/migration-runner.ts",
+  "db:seed": "tsx src/database/seed-runner.ts",
+  "test": "vitest run",
+  "lint": "eslint \"src/**/*.ts\"",
+  "typecheck": "tsc --noEmit"
+},
   "dependencies": {
     "@yunexacademy/shared-types": "workspace:*",
     "express": "^4.19.0",
