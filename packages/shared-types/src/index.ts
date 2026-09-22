@@ -1,11 +1,8 @@
-export * from './api-response.types.js';
-export * from './pagination.types.js';
-export * from './role.types.js';
-export * from './user.types.js';
-export * from './training-course.types.js';
-export * from './submodule.types.js';
-export * from './video.types.js';
-export * from './question.types.js';
-export * from './assessment.types.js';
-export * from './attempt.types.js';
-export * from './dashboard.types.js';
+﻿// Tipos compartidos entre frontend y backend
+export type UserRole = 'admin' | 'teacher' | 'student';
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
