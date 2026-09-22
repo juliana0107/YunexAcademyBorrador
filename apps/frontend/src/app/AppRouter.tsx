@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { UserListPage } from '@/features/users/pages/UserListPage';
+import { TrainingCourseListPage } from '@/features/training-courses/pages/TrainingCourseListPage';
 
 export function AppRouter() {
   return (
@@ -15,6 +16,7 @@ export function AppRouter() {
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UserListPage />} />
+            <Route path="/training-courses" element={<TrainingCourseListPage />} />
           </Route>
         </Route>
 
