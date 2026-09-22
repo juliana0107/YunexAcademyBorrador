@@ -1,10 +1,20 @@
-import { AppProviders } from './AppProviders';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from './AppRouter';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export function App() {
   return (
-    <AppProviders>
+    <QueryClientProvider client={queryClient}>
       <AppRouter />
-    </AppProviders>
+    </QueryClientProvider>
   );
 }
