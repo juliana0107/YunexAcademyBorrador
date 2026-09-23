@@ -19,7 +19,7 @@ export interface DashboardData {
   indicators: Record<string, IndicatorResult>;
 }
 
-// ============ Formas específicas de cada indicador ============
+//  Formas específicas de cada indicador 
 
 export interface CoursesByStatusValue {
   draft: number;

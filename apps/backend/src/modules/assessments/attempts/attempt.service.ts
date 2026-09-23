@@ -21,7 +21,7 @@ import type {
 } from './attempt.schema.js';
 import { eventBus, EVENTS } from '../../../shared/events/event-bus.js';
 
-// ============ HELPERS ============
+//  HELPERS 
 
 interface AssessmentContext {
   id: string;
@@ -124,7 +124,7 @@ async function buildStartResult(
   };
 }
 
-// ============ INICIAR INTENTO ============
+//  INICIAR INTENTO 
 
 export async function startAttempt(
   assessmentId: string,
@@ -187,7 +187,7 @@ export async function startAttempt(
   return buildStartResult(attempt);
 }
 
-// ============ GUARDAR RESPUESTA ============
+//  GUARDAR RESPUESTA 
 
 export async function saveAnswer(
   attemptId: string,
@@ -230,7 +230,7 @@ export async function saveAnswer(
   await repo.upsertAnswer(attemptId, questionId, answer);
 }
 
-// ============ ENVIAR Y CALIFICAR ============
+//  ENVIAR Y CALIFICAR 
 
 export async function submitAttempt(
   attemptId: string,
@@ -349,7 +349,7 @@ function buildSubmitResult(attempt: repo.AttemptRecord): SubmitResult {
   };
 }
 
-// ============ CALIFICAR OPEN ANSWER ============
+//  CALIFICAR OPEN ANSWER 
 
 export async function gradeOpenAnswer(
   attemptId: string,
@@ -434,7 +434,7 @@ export async function gradeOpenAnswer(
   return toDetail(updatedAttempt, answers, true);
 }
 
-// ============ OBTENER INTENTO ============
+//  OBTENER INTENTO 
 
 export async function getAttempt(
   attemptId: string,
@@ -488,7 +488,7 @@ function computeShowResults(
   return false;
 }
 
-// ============ LISTAR MIS INTENTOS ============
+//  LISTAR MIS INTENTOS 
 
 export async function listMyAttempts(
   userId: string,
@@ -518,7 +518,7 @@ export async function listMyAttempts(
   };
 }
 
-// ============ LISTAR INTENTOS DE UNA EVALUACIÓN ============
+//  LISTAR INTENTOS DE UNA EVALUACIÓN 
 
 export async function listAssessmentAttempts(
   assessmentId: string,
