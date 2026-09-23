@@ -1,5 +1,6 @@
 import { Plus, Pencil, Trash2, Video, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import type { SubmoduleListItem } from '@/features/submodules/types/submodule.types';
+import { Link } from 'react-router-dom';
 
 interface Props {
   submodules: SubmoduleListItem[];
@@ -80,9 +81,12 @@ export function SubmoduleList({
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-medium text-gray-900">
-                    {submodule.title}
-                  </h3>
+                  <Link
+                     to={`/submodules/${submodule.id}`}
+                      className="text-base font-medium text-gray-900 hover:text-brand-600 transition-colors"
+                      >
+                       {submodule.title}
+                   </Link>
                   <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
                     {submodule.description || 'Sin descripción'}
                   </p>
