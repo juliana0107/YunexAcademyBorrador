@@ -33,10 +33,10 @@ coverage
 .gitignore
 .github
 
-# Docker (los compose no van al build)
+# Docker
 docker-compose*.yml
 
-# Uploads locales (los reales van al volumen)
+# Uploads locales
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
 
