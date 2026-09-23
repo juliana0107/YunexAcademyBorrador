@@ -55,3 +55,58 @@ export type DateRangePreset =
   | 'last-30-days'
   | 'last-90-days'
   | 'all-time';
+
+// ============ TIPOS ADICIONALES (BLOQUE 2) ============
+
+export interface UsersByStatusValue {
+  active: number;
+  inactive: number;
+  suspended: number;
+}
+
+export interface AssessmentsByStatusValue {
+  draft: number;
+  published: number;
+  archived: number;
+}
+
+export interface AverageAttemptsValue {
+  averageAttempts: number;
+  totalStudents: number;
+}
+
+export interface ScreenshotAttemptsValue {
+  totalAttempts: number;
+  uniqueUsers: number;
+  affectedVideos: number;
+}
+
+export interface AverageWatchTimeValue {
+  averageWatchTimeSeconds: number;
+  totalWatchTimeSeconds: number;
+}
+
+export interface TopFailingCourseItem {
+  trainingCourseId: string;
+  title: string;
+  failedAttempts: number;
+  totalAttempts: number;
+  failureRatePercent: number;
+}
+
+export interface TopProgressingUserItem {
+  userId: string;
+  fullName: string;
+  completedVideos: number;
+  totalVideos: number;
+  progressPercent: number;
+}
+
+export interface MostFailedQuestionItem {
+  questionId: string;
+  statement: string;
+  questionType: string;
+  failedAttempts: number;
+  totalAttempts: number;
+  failureRatePercent: number;
+}

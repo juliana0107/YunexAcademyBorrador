@@ -1,22 +1,22 @@
-import { Users } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 import { IndicatorCard } from '../IndicatorCard';
-import type { UsersByRoleValue } from '../../types/dashboard.types';
+import type { UsersByStatusValue } from '../../types/dashboard.types';
 
 interface Props {
-  value: UsersByRoleValue | null;
+  value: UsersByStatusValue | null;
   isLoading?: boolean;
   error?: string;
 }
 
-export function UsersByRoleCard({ value, isLoading, error }: Props) {
-  const total = value ? value.admin + value.instructor + value.student : 0;
+export function UsersByStatusCard({ value, isLoading, error }: Props) {
+  const total = value ? value.active + value.inactive + value.suspended : 0;
 
   return (
     <IndicatorCard
-      title="Usuarios por rol"
-      icon={Users}
-      iconColor="text-purple-600"
-      iconBg="bg-purple-50"
+      title="Usuarios por estado"
+      icon={UserCheck}
+      iconColor="text-teal-600"
+      iconBg="bg-teal-50"
       isLoading={isLoading}
       error={error}
     >
@@ -29,24 +29,24 @@ export function UsersByRoleCard({ value, isLoading, error }: Props) {
         <div className="space-y-3">
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-gray-900">{total}</span>
-            <span className="text-xs text-gray-500">usuarios</span>
+            <span className="text-xs text-gray-500">totales</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 mt-3">
-            <RoleBox
-              label="Admins"
-              count={value.admin}
-              color="bg-purple-100 text-purple-700"
+            <StatusBox
+              label="Activos"
+              count={value.active}
+              color="bg-green-100 text-green-700"
             />
-            <RoleBox
-              label="Instructores"
-              count={value.instructor}
-              color="bg-blue-100 text-blue-700"
+            <StatusBox
+              label="Inactivos"
+              count={value.inactive}
+              color="bg-gray-100 text-gray-700"
             />
-            <RoleBox
-              label="Estudiantes"
-              count={value.student}
-              color="bg-amber-100 text-amber-700"
+            <StatusBox
+              label="Suspendidos"
+              count={value.suspended}
+              color="bg-red-100 text-red-700"
             />
           </div>
         </div>
@@ -55,7 +55,7 @@ export function UsersByRoleCard({ value, isLoading, error }: Props) {
   );
 }
 
-function RoleBox({
+function StatusBox({
   label,
   count,
   color,
