@@ -10,6 +10,8 @@
   "db:migrate": "tsx src/database/migration-runner.ts",
   "db:seed": "tsx src/database/seed-runner.ts",
   "test": "vitest run",
+  "test:watch": "vitest",
+  "test:cov": "vitest run --coverage",
   "lint": "eslint \"src/**/*.ts\"",
   "typecheck": "tsc --noEmit"
 },
