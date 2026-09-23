@@ -27,7 +27,8 @@ import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
 import { SubmoduleList } from '../components/SubmoduleList';
 import { SubmoduleFormModal } from '../components/SubmoduleFormModal';
 import { SubmoduleDeleteDialog } from '../components/SubmoduleDeleteDialog';
-import { extractErrorMessage } from '@/lib/errors';
+import { AssessmentTab } from '../components/AssessmentTab';
+import { extractErrorMessage } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import type { SubmoduleListItem } from '@/features/submodules/types/submodule.types';
 import type { TrainingCourseListItem } from '../types/training-course.types';
@@ -39,7 +40,8 @@ export function TrainingCourseDetailPage() {
 
   const canEdit = user?.permissions?.includes('training-courses:write' as never) ?? false;
   const canDelete = user?.permissions?.includes('training-courses:delete' as never) ?? false;
-  const canEditSubmodules = user?.permissions?.includes('submodules:write' as never) ?? false;
+  const canEditSubmodules =
+    user?.permissions?.includes('submodules:write' as never) ?? false;
 
   const { data: course, isLoading: courseLoading } = useTrainingCourse(id);
   const { data: submodules = [], isLoading: submodulesLoading } = useSubmodules(id);
@@ -47,11 +49,14 @@ export function TrainingCourseDetailPage() {
   const statusMutation = useChangeTrainingCourseStatus();
   const deleteCourseMutation = useDeleteTrainingCourse();
 
+  const [activeTab, setActiveTab] = useState<'submodules' | 'assessments'>('submodules');
   const [courseModalOpen, setCourseModalOpen] = useState(false);
-  const [deleteCourseTarget, setDeleteCourseTarget] = useState<TrainingCourseListItem | null>(null);
+  const [deleteCourseTarget, setDeleteCourseTarget] =
+    useState<TrainingCourseListItem | null>(null);
   const [submoduleModalOpen, setSubmoduleModalOpen] = useState(false);
   const [editingSubmodule, setEditingSubmodule] = useState<SubmoduleListItem | null>(null);
-  const [deleteSubmoduleTarget, setDeleteSubmoduleTarget] = useState<SubmoduleListItem | null>(null);
+  const [deleteSubmoduleTarget, setDeleteSubmoduleTarget] =
+    useState<SubmoduleListItem | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const deleteSubmoduleMutation = useDeleteSubmodule(id ?? '');
@@ -132,7 +137,10 @@ export function TrainingCourseDetailPage() {
     }
   }
 
-  async function moveSubmodule(submodule: SubmoduleListItem, direction: 'up' | 'down') {
+  async function moveSubmodule(
+    submodule: SubmoduleListItem,
+    direction: 'up' | 'down'
+  ) {
     const currentIndex = submodules.findIndex((s) => s.id === submodule.id);
     if (currentIndex === -1) return;
 
@@ -142,7 +150,6 @@ export function TrainingCourseDetailPage() {
     const target = submodules[targetIndex];
 
     try {
-      // Swap de órdenes
       await Promise.all([
         changeOrderMutation.mutateAsync({ id: submodule.id, order: target.order }),
         changeOrderMutation.mutateAsync({ id: target.id, order: submodule.order }),
@@ -169,9 +176,7 @@ export function TrainingCourseDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h1>
-            <p className="text-gray-600 mb-3">
-              {course.description || 'Sin descripción'}
-            </p>
+            <p className="text-gray-600 mb-3">{course.description || 'Sin descripción'}</p>
             <div className="flex flex-wrap gap-2">
               <TrainingCourseStatusBadge status={course.status} />
               <TrainingCourseLevelBadge level={course.level} />
@@ -256,16 +261,52 @@ export function TrainingCourseDetailPage() {
         </div>
       )}
 
-      <SubmoduleList
-        submodules={submodules}
-        isLoading={submodulesLoading}
-        canEdit={canEditSubmodules && course.status !== 'ARCHIVED'}
-        onCreate={openCreateSubmodule}
-        onEdit={openEditSubmodule}
-        onDelete={setDeleteSubmoduleTarget}
-        onMoveUp={(s) => moveSubmodule(s, 'up')}
-        onMoveDown={(s) => moveSubmodule(s, 'down')}
-      />
+      {/* Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="flex gap-6">
+          <button
+            onClick={() => setActiveTab('submodules')}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'submodules'
+                ? 'border-brand-600 text-brand-700'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Submódulos
+          </button>
+          <button
+            onClick={() => setActiveTab('assessments')}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'assessments'
+                ? 'border-brand-600 text-brand-700'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Evaluaciones
+          </button>
+        </nav>
+      </div>
+
+      {activeTab === 'submodules' && (
+        <SubmoduleList
+          submodules={submodules}
+          isLoading={submodulesLoading}
+          canEdit={canEditSubmodules && course.status !== 'ARCHIVED'}
+          onCreate={openCreateSubmodule}
+          onEdit={openEditSubmodule}
+          onDelete={setDeleteSubmoduleTarget}
+          onMoveUp={(s) => moveSubmodule(s, 'up')}
+          onMoveDown={(s) => moveSubmodule(s, 'down')}
+        />
+      )}
+
+      {activeTab === 'assessments' && (
+        <AssessmentTab
+          courseId={id}
+          canEdit={canEdit}
+          courseIsArchived={course.status === 'ARCHIVED'}
+        />
+      )}
 
       <TrainingCourseFormModal
         isOpen={courseModalOpen}
