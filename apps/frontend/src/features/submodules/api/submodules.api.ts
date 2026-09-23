@@ -9,6 +9,13 @@ interface ApiSuccess<T> {
   success: true;
   data: T;
 }
+export async function getSubmodule(id: string): Promise<SubmoduleListItem> {
+  const { data } = await apiClient.get<ApiSuccess<SubmoduleListItem>>(
+    `/submodules/${id}`
+  );
+  return data.data;
+}
+
 
 export async function listByCourse(courseId: string): Promise<SubmoduleListItem[]> {
   const { data } = await apiClient.get<ApiSuccess<SubmoduleListItem[]>>(

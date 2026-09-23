@@ -6,6 +6,7 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { UserListPage } from '@/features/users/pages/UserListPage';
 import { TrainingCourseListPage } from '@/features/training-courses/pages/TrainingCourseListPage';
 import { TrainingCourseDetailPage } from '@/features/training-courses/pages/TrainingCourseDetailPage';
+import { SubmoduleDetailPage } from '@/features/videos/pages/SubmoduleDetailPage';
 
 export function AppRouter() {
   return (
@@ -19,6 +20,7 @@ export function AppRouter() {
             <Route path="/users" element={<UserListPage />} />
             <Route path="/training-courses" element={<TrainingCourseListPage />} />
             <Route path="/training-courses/:id" element={<TrainingCourseDetailPage />} />
+            <Route path="/submodules/:submoduleId" element={<SubmoduleDetailPage />} />
           </Route>
         </Route>
 
