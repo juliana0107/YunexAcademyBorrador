@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { requestStreamTicket, buildStreamUrl, recordScreenshotAttempt } from '../api/videos.api';
+import { getVideoProgress, upsertVideoProgress } from '@/features/video-progress/api/video-progress.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
 const TICKET_RENEW_INTERVAL_MS = 45_000;
+const PROGRESS_REPORT_INTERVAL_MS = 5_000;
 
 interface Props {
   videoId: string;
@@ -19,7 +21,11 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
   const [captureWarning, setCaptureWarning] = useState(false);
   const warningTimeoutRef = useRef<number | null>(null);
 
-  // Pedir y renovar ticket
+  // Guardar el último segundo visto para reportar
+  const lastReportedSecondsRef = useRef<number>(-1);
+  const initialSeekDoneRef = useRef<boolean>(false);
+
+  // 1. Renovación de ticket
   useEffect(() => {
     let cancelled = false;
     let intervalId: number | null = null;
@@ -50,21 +56,98 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
     };
   }, [videoId]);
 
-  // Detección de capturas
+  // 2. Reset al cambiar de video
+  useEffect(() => {
+    lastReportedSecondsRef.current = -1;
+    initialSeekDoneRef.current = false;
+  }, [videoId]);
+
+  // 3. Seek inicial al progreso previo
+  useEffect(() => {
+    if (!streamUrl || initialSeekDoneRef.current) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    async function seekToPrevious(): Promise<void> {
+      try {
+        const progress = await getVideoProgress(videoId);
+        if (progress && progress.watchedSeconds > 0 && !progress.completed) {
+          // Solo saltar si NO está completado
+          video!.currentTime = progress.watchedSeconds;
+        }
+        initialSeekDoneRef.current = true;
+      } catch {
+        initialSeekDoneRef.current = true;
+      }
+    }
+
+    // Esperar a que el video cargue metadata
+    if (video.readyState >= 1) {
+      void seekToPrevious();
+    } else {
+      const onLoaded = (): void => {
+        void seekToPrevious();
+        video.removeEventListener('loadedmetadata', onLoaded);
+      };
+      video.addEventListener('loadedmetadata', onLoaded);
+      return () => video.removeEventListener('loadedmetadata', onLoaded);
+    }
+  }, [streamUrl, videoId]);
+
+  // 4. Reportar progreso cada 5 segundos
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const video = videoRef.current;
+      if (!video) return;
+      if (video.paused || video.ended) return;
+      if (!video.duration || isNaN(video.duration)) return;
+
+      const currentSec = Math.floor(video.currentTime);
+      if (currentSec === lastReportedSecondsRef.current) return;
+
+      lastReportedSecondsRef.current = currentSec;
+      const totalSec = Math.floor(video.duration);
+
+      void upsertVideoProgress(videoId, currentSec, totalSec).catch(() => {
+        // silencioso
+      });
+    }, PROGRESS_REPORT_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [videoId]);
+
+  // 5. Reportar al pausar
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    function onPause(): void {
+      if (!video!.duration || isNaN(video!.duration)) return;
+      const currentSec = Math.floor(video!.currentTime);
+      if (currentSec === 0) return; // no reportar si nunca empezó
+      const totalSec = Math.floor(video!.duration);
+      void upsertVideoProgress(videoId, currentSec, totalSec).catch(() => {
+        // silencioso
+      });
+    }
+
+    video.addEventListener('pause', onPause);
+    return () => video.removeEventListener('pause', onPause);
+  }, [videoId, streamUrl]);
+
+  // 6. Detección de capturas
   useEffect(() => {
     function handleCapture(source: string): void {
-      // Registrar en backend
       void recordScreenshotAttempt(videoId).catch(() => {
         /* silencioso */
       });
 
-      // Pausar el video
       const video = videoRef.current;
       if (video && !video.paused) {
         video.pause();
       }
 
-      // Mostrar alerta por 4 segundos
       setCaptureWarning(true);
       if (warningTimeoutRef.current !== null) {
         window.clearTimeout(warningTimeoutRef.current);
@@ -73,7 +156,6 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
         setCaptureWarning(false);
       }, 4000);
 
-      // Para debugging: puedes loguear `source`
       console.warn(`[capture-protection] Triggered by: ${source}`);
     }
 
@@ -95,8 +177,6 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
         return;
       }
 
-      // Win+Shift+S no se puede detectar directo en el navegador,
-      // pero en Windows produce Meta+Shift+S en algunos casos.
       if (e.ctrlKey && key.toLowerCase() === 's') {
         e.preventDefault();
         handleCapture('Ctrl+S');
@@ -106,8 +186,6 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
 
     function onVisibilityChange(): void {
       if (document.visibilityState === 'hidden') {
-        // Ocultar la pestaña por más de 2 segundos puede ser captura
-        // Usamos un flag y luego comprobamos al volver
         const hiddenAt = Date.now();
         const onVisible = (): void => {
           const hiddenFor = Date.now() - hiddenAt;
@@ -166,7 +244,6 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
         />
       )}
 
-      {/* Watermark con email */}
       {user && (
         <div
           className="absolute top-3 right-3 text-white/40 text-xs font-medium pointer-events-none select-none"
@@ -176,7 +253,6 @@ export function VideoPlayer({ videoId, autoPlay = false }: Props) {
         </div>
       )}
 
-      {/* Alerta de captura */}
       {captureWarning && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-900/70 backdrop-blur-sm pointer-events-none">
           <div className="bg-white rounded-xl px-6 py-4 flex items-center gap-3 shadow-2xl max-w-sm">

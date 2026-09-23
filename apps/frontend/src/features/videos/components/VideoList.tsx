@@ -1,11 +1,13 @@
-import { Play, Pencil, Trash2, Clock, FileVideo } from 'lucide-react';
+import { Play, Pencil, Trash2, Clock, FileVideo, CheckCircle2 } from 'lucide-react';
 import type { VideoListItem } from '../types/video.types';
+import type { SubmoduleVideoProgress } from '@/features/video-progress/types/video-progress.types';
 
 interface Props {
   videos: VideoListItem[];
   isLoading: boolean;
   canEdit: boolean;
   selectedVideoId: string | null;
+  progressMap?: Map<string, SubmoduleVideoProgress>;
   onSelect: (video: VideoListItem) => void;
   onEdit: (video: VideoListItem) => void;
   onDelete: (video: VideoListItem) => void;
@@ -29,6 +31,7 @@ export function VideoList({
   isLoading,
   canEdit,
   selectedVideoId,
+  progressMap,
   onSelect,
   onEdit,
   onDelete,
@@ -56,25 +59,32 @@ export function VideoList({
     <ul className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-200">
       {videos.map((video, index) => {
         const isSelected = selectedVideoId === video.id;
+        const progress = progressMap?.get(video.id);
+        const isCompleted = progress?.completed ?? false;
+       
         return (
           <li
             key={video.id}
-            className={`p-4 group transition-colors ${
+            className={`group transition-colors ${
               isSelected ? 'bg-brand-50' : 'hover:bg-gray-50'
             }`}
           >
-            <div className="flex items-start gap-3">
+            <div className="p-4 flex items-start gap-3">
               <button
                 type="button"
                 onClick={() => onSelect(video)}
-                className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                className={`relative flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
                   isSelected
                     ? 'bg-brand-600 text-white'
                     : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
                 }`}
                 title="Reproducir"
               >
-                <Play className="w-4 h-4" fill="currentColor" />
+                {isCompleted ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" fill="currentColor" />
+                )}
               </button>
 
               <div className="flex-1 min-w-0">
@@ -94,6 +104,27 @@ export function VideoList({
                   <span>{formatBytes(video.fileSizeBytes)}</span>
                   <span className="uppercase">{video.mimeType.replace('video/', '')}</span>
                 </div>
+
+                {/* Barra de progreso */}
+                {progress && progress.watchedSeconds > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${
+                          isCompleted ? 'bg-green-500' : 'bg-brand-500'
+                        }`}
+                        style={{ width: `${progress.progressPercent}%` }}
+                      />
+                    </div>
+                    <span
+                      className={`text-xs font-medium ${
+                        isCompleted ? 'text-green-600' : 'text-brand-600'
+                      }`}
+                    >
+                      {progress.progressPercent}%
+                    </span>
+                  </div>
+                )}
               </div>
 
               {canEdit && (

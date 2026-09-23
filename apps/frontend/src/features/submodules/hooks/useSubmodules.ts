@@ -10,7 +10,7 @@ export const submodulesKeys = {
 export function useSubmodules(courseId: string | undefined) {
   return useQuery({
     queryKey: submodulesKeys.byCourse(courseId ?? ''),
-    queryFn: () => listByCourse(courseId!),
+    queryFn: () => listByCourse(courseId!),   // 👈 ESTA LÍNEA FALTABA
     enabled: !!courseId,
   });
 }

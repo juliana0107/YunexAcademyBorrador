@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Clock, Video as VideoIcon } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useSubmodule } from '@/features/submodules/hooks/useSubmodules';
 import { useTrainingCourse } from '@/features/training-courses/hooks/useTrainingCourses';
+import { useSubmoduleProgress } from '@/features/video-progress/hooks/useVideoProgress';
 import { useVideos } from '../hooks/useVideos';
 import { useDeleteVideo } from '../hooks/useVideoMutations';
 import { VideoPlayer } from '../components/VideoPlayer';
@@ -19,27 +20,37 @@ export function SubmoduleDetailPage() {
 
   const canEdit = user?.permissions?.includes('videos:write' as never) ?? false;
 
-  const { data: videos = [], isLoading: videosLoading } = useVideos(submoduleId);
+  // 1. Datos base
   const { data: submodule } = useSubmodule(submoduleId);
+  const courseId = submodule?.trainingCourseId;
 
+  const { data: course } = useTrainingCourse(courseId);
+  const { data: videos = [], isLoading: videosLoading } = useVideos(submoduleId);
+  const { data: progressData } = useSubmoduleProgress(submoduleId);
+
+  // 2. Estado local
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<VideoListItem | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const courseId = submodule?.trainingCourseId;
-
-  const { data: course } = useTrainingCourse(courseId);
-
+  // 3. Mutación de borrado
   const deleteMutation = useDeleteVideo(submoduleId ?? '', courseId);
 
-  // Auto-seleccionar el primer video al cargar
+  // 4. Mapa de progreso por videoId
+  const progressMap = useMemo(
+    () => new Map(progressData?.videos.map((v) => [v.videoId, v]) ?? []),
+    [progressData]
+  );
+
+  // 5. Auto-seleccionar el primer video al cargar
   useEffect(() => {
     if (!selectedVideoId && videos.length > 0) {
       setSelectedVideoId(videos[0].id);
     }
   }, [videos, selectedVideoId]);
 
+  // 6. Early return DESPUÉS de todos los hooks
   if (!submoduleId) return null;
 
   async function confirmDelete(): Promise<void> {
@@ -131,6 +142,7 @@ export function SubmoduleDetailPage() {
         isLoading={videosLoading}
         canEdit={canEdit}
         selectedVideoId={selectedVideoId}
+        progressMap={progressMap}
         onSelect={(v) => setSelectedVideoId(v.id)}
         onEdit={() => {
           // TODO: modal de editar (por ahora solo título/description/duration)
