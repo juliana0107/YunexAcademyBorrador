@@ -1,6 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { X, Plus, Trash2, CheckCircle2, Circle } from 'lucide-react';
-import type { QuestionType } from '@yunexacademy/shared-types';
+import {
+  type QuestionType,
+  QUESTION_TYPE_LABELS,
+  IMPLEMENTED_QUESTION_TYPES,
+  validateQuestionPayload,
+} from '@yunexacademy/shared-types';
 import {
   useCreateQuestion,
   useUpdateQuestion,
@@ -10,13 +15,13 @@ import type {
   QuestionListItem,
   QuestionOptionData,
 } from '../types/assessment.types';
+import { EDITOR_REGISTRY, createInitialPayload } from './editors';
 
-const TYPE_OPTIONS: { value: QuestionType; label: string }[] = [
-  { value: 'SINGLE_CHOICE', label: 'Selección única' },
-  { value: 'MULTIPLE_CHOICE', label: 'Selección múltiple' },
-  { value: 'TRUE_FALSE', label: 'Verdadero / Falso' },
-  { value: 'OPEN_ANSWER', label: 'Respuesta abierta' },
-];
+const TYPE_OPTIONS: { value: QuestionType; label: string }[] =
+  IMPLEMENTED_QUESTION_TYPES.map((value) => ({
+    value,
+    label: QUESTION_TYPE_LABELS[value],
+  }));
 
 interface Props {
   isOpen: boolean;
@@ -25,7 +30,12 @@ interface Props {
   onClose: () => void;
 }
 
-export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: Props) {
+export function QuestionFormModal({
+  isOpen,
+  assessmentId,
+  question,
+  onClose,
+}: Props) {
   const isEditing = !!question;
   const createMutation = useCreateQuestion(assessmentId);
   const updateMutation = useUpdateQuestion(assessmentId);
@@ -34,9 +44,7 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
   const [statement, setStatement] = useState('');
   const [points, setPoints] = useState(1);
   const [options, setOptions] = useState<QuestionOptionData[]>([]);
-  const [correctTrueFalse, setCorrectTrueFalse] = useState(true);
-  const [minWords, setMinWords] = useState<string>('');
-  const [maxWords, setMaxWords] = useState<string>('');
+  const [payload, setPayload] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,15 +53,7 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
       setStatement(question.statement);
       setPoints(question.points);
       setOptions(question.options ?? []);
-
-      if (question.type === 'TRUE_FALSE') {
-        setCorrectTrueFalse(Boolean(question.payload.correctAnswer));
-      }
-
-      if (question.type === 'OPEN_ANSWER') {
-        setMinWords(question.payload.minWords ? String(question.payload.minWords) : '');
-        setMaxWords(question.payload.maxWords ? String(question.payload.maxWords) : '');
-      }
+      setPayload(question.payload ?? {});
     } else {
       setType('SINGLE_CHOICE');
       setStatement('');
@@ -62,15 +62,14 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
         { text: '', isCorrect: true, order: 0 },
         { text: '', isCorrect: false, order: 1 },
       ]);
-      setCorrectTrueFalse(true);
-      setMinWords('');
-      setMaxWords('');
+      setPayload({});
     }
     setError(null);
   }, [question, isOpen]);
 
   function handleTypeChange(newType: QuestionType): void {
     setType(newType);
+    setPayload(createInitialPayload(newType));
 
     if (newType === 'SINGLE_CHOICE' || newType === 'MULTIPLE_CHOICE') {
       if (options.length < 2) {
@@ -104,7 +103,9 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
       if (type === 'SINGLE_CHOICE') {
         return prev.map((o, i) => ({ ...o, isCorrect: i === index }));
       }
-      return prev.map((o, i) => (i === index ? { ...o, isCorrect: !o.isCorrect } : o));
+      return prev.map((o, i) =>
+        i === index ? { ...o, isCorrect: !o.isCorrect } : o
+      );
     });
   }
 
@@ -112,28 +113,29 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
     e.preventDefault();
     setError(null);
 
-    // Armar payload según tipo
-    let payload: Record<string, unknown> = {};
-    if (type === 'TRUE_FALSE') {
-      payload = { correctAnswer: correctTrueFalse };
-    } else if (type === 'OPEN_ANSWER') {
-      payload = {};
-      if (minWords) payload.minWords = parseInt(minWords, 10);
-      if (maxWords) payload.maxWords = parseInt(maxWords, 10);
+    const validationErrors = validateQuestionPayload(type, payload);
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0]);
+      return;
     }
 
+    const finalPayload =
+      type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE' ? {} : payload;
+
     const opts =
-      type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE' ? options : undefined;
+      type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE'
+        ? options
+        : undefined;
 
     try {
-      if (isEditing) {
+      if (isEditing && question) {
         await updateMutation.mutateAsync({
           id: question.id,
           input: {
             statement,
             points,
             options: opts,
-            payload,
+            payload: finalPayload,
           },
         });
       } else {
@@ -142,7 +144,7 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
           statement,
           points,
           options: opts,
-          payload,
+          payload: finalPayload,
         });
       }
       onClose();
@@ -154,6 +156,7 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
   if (!isOpen) return null;
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const Editor = EDITOR_REGISTRY[type];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -179,7 +182,9 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
               </label>
               <select
                 value={type}
-                onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
+                onChange={(e) =>
+                  handleTypeChange(e.target.value as QuestionType)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {TYPE_OPTIONS.map((opt) => (
@@ -289,9 +294,11 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setCorrectTrueFalse(true)}
+                  onClick={() =>
+                    setPayload({ ...payload, correctAnswer: true })
+                  }
                   className={`flex-1 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                    correctTrueFalse
+                    payload.correctAnswer === true
                       ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -300,9 +307,11 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCorrectTrueFalse(false)}
+                  onClick={() =>
+                    setPayload({ ...payload, correctAnswer: false })
+                  }
                   className={`flex-1 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                    !correctTrueFalse
+                    payload.correctAnswer === false
                       ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -323,8 +332,15 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
                 <input
                   type="number"
                   min={0}
-                  value={minWords}
-                  onChange={(e) => setMinWords(e.target.value)}
+                  value={(payload.minWords as number | undefined) ?? ''}
+                  onChange={(e) =>
+                    setPayload({
+                      ...payload,
+                      minWords: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : undefined,
+                    })
+                  }
                   placeholder="Opcional"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
@@ -336,8 +352,15 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
                 <input
                   type="number"
                   min={0}
-                  value={maxWords}
-                  onChange={(e) => setMaxWords(e.target.value)}
+                  value={(payload.maxWords as number | undefined) ?? ''}
+                  onChange={(e) =>
+                    setPayload({
+                      ...payload,
+                      maxWords: e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : undefined,
+                    })
+                  }
                   placeholder="Opcional"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
@@ -345,6 +368,13 @@ export function QuestionFormModal({ isOpen, assessmentId, question, onClose }: P
               <p className="col-span-2 text-xs text-gray-500">
                 Las respuestas abiertas requieren revisión manual del instructor.
               </p>
+            </div>
+          )}
+
+          {/* Editor dinámico para el resto de tipos */}
+          {Editor && (
+            <div className="border-t border-gray-200 pt-4">
+              <Editor payload={payload} onChange={setPayload} />
             </div>
           )}
 

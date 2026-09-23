@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import type { AuthUser, LoginInput, LoginResult } from '../types/auth.types';
+import type { AuthUser, LoginInput, LoginResult } from '@yunexacademy/shared-types';
 
 interface ApiSuccess<T> {
   success: true;
