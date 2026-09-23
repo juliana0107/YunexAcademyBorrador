@@ -1,19 +1,17 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import type { ApiResponse } from '@yunexacademy/shared-types';
-import { ENV } from './env';
 
-
- // Cliente HTTP único para toda la app.
- // Interceptores añaden el token JWT y manejan 401 globalmente.
- 
+// Cliente HTTP único para toda la app.
+// Usa el proxy de Vite: /api/* → http://localhost:4000/api/*
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: ENV.API_URL,
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 15_000,
 });
 
 const TOKEN_KEY = 'yunex.auth.token';
 const USER_KEY = 'yunex.auth.user';
+
 
 // ============ Bearer token ============
 apiClient.interceptors.request.use((config) => {

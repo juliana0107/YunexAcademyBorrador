@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, LogOut, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ENV } from '@/lib/env';
 
@@ -12,6 +12,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/my-progress', label: 'Mi progreso', icon: TrendingUp },
   { to: '/users', label: 'Usuarios', icon: Users, permission: 'users:read' },
   { to: '/training-courses', label: 'Cursos', icon: BookOpen, permission: 'training-courses:read' },
 ];
