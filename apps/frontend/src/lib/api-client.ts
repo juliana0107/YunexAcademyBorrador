@@ -13,7 +13,7 @@ const TOKEN_KEY = 'yunex.auth.token';
 const USER_KEY = 'yunex.auth.user';
 
 
-// ============ Bearer token ============
+//  Bearer token 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
@@ -22,7 +22,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ============ Maneja 401 global ============
+//  Maneja 401 global 
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiResponse<unknown>>) => {

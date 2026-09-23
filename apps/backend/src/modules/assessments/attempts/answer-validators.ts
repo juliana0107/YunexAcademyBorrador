@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { QuestionType } from '../questions/question.types.js';
 
-// ============ Schemas por tipo ============
+//  Schemas por tipo 
 
 const singleChoiceSchema = z.object({
   optionId: z.string().uuid('Invalid option ID'),
@@ -61,7 +61,7 @@ const openAnswerSchema = z.object({
   text: z.string().max(20000),
 });
 
-// ============ Mapa tipo → schema ============
+//  Mapa tipo → schema 
 
 const SCHEMAS: Record<QuestionType, z.ZodTypeAny> = {
   SINGLE_CHOICE: singleChoiceSchema,
@@ -78,7 +78,7 @@ const SCHEMAS: Record<QuestionType, z.ZodTypeAny> = {
   OPEN_ANSWER: openAnswerSchema,
 };
 
-// ============ API pública ============
+//  API pública 
 
 export function validateAnswer(
   type: QuestionType,

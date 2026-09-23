@@ -2,7 +2,7 @@ import { pool } from '../../../config/database.config.js';
 import type { AttemptStatus } from './attempt.types.js';
 import type { QuestionType } from '../questions/question.types.js';
 
-// ============ INTERFACES DE FILAS ============
+//  INTERFACES DE FILAS 
 
 interface AttemptRow {
   id: string;
@@ -59,7 +59,7 @@ interface OptionRow {
   order: number;
 }
 
-// ============ RECORDS ============
+//  RECORDS 
 
 export interface AttemptRecord {
   id: string;
@@ -114,7 +114,7 @@ export interface QuestionRecord {
   }> | null;
 }
 
-// ============ HIDRATACIÓN ============
+//  HIDRATACIÓN 
 
 function hydrateAttempt(row: AttemptRow): AttemptRecord {
   return {
@@ -157,7 +157,7 @@ function hydrateAnswer(row: AnswerRow): AnswerRecord {
   };
 }
 
-// ============ SELECT BASE ============
+//  SELECT BASE 
 
 const BASE_ATTEMPT_SELECT = `
   SELECT
@@ -173,7 +173,7 @@ const BASE_ATTEMPT_SELECT = `
   INNER JOIN users u ON u.id = a.user_id
 `;
 
-// ============ ATTEMPTS ============
+//  ATTEMPTS 
 
 export async function findAttemptById(id: string): Promise<AttemptRecord | null> {
   const result = await pool.query<AttemptRow>(
@@ -342,7 +342,7 @@ export async function listAttempts(filters: ListAttemptsFilters): Promise<{
   return { items: listResult.rows.map(hydrateAttempt), total };
 }
 
-// ============ ANSWERS ============
+//  ANSWERS 
 
 const BASE_ANSWER_SELECT = `
   SELECT
@@ -451,7 +451,7 @@ export async function countPendingOpenAnswers(attemptId: string): Promise<number
   return parseInt(result.rows[0].count, 10);
 }
 
-// ============ PREGUNTAS DEL INTENTO ============
+//  PREGUNTAS DEL INTENTO 
 
 export async function getQuestionsForAssessment(
   assessmentId: string

@@ -1,6 +1,6 @@
 ﻿import type { QuestionRecord } from '../attempt.repository.js';
 
-// ============ Tipos ============
+//  Tipos 
 
 export interface GradeResult {
   isCorrect: boolean | null;
@@ -51,7 +51,7 @@ interface MatchingGridPayload {
   matches?: Array<{ rowId: string; columnId: string }>;
 }
 
-// ============ Utilidades ============
+//  Utilidades 
 
 function normalize(value: string, caseSensitive: boolean): string {
   const trimmed = value.trim().replace(/\s+/g, ' ');
@@ -66,7 +66,7 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
   return true;
 }
 
-// ============ Calificadores por tipo ============
+//  Calificadores por tipo 
 
 function gradeSingleChoice(
   question: QuestionRecord,
@@ -338,7 +338,7 @@ function gradeOpenAnswer(): GradeResult {
   return { isCorrect: null, pointsEarned: 0 };
 }
 
-// ============ Dispatcher ============
+//  Dispatcher 
 
 export function gradeAnswer(
   question: QuestionRecord,

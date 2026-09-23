@@ -11,7 +11,7 @@ import {
   listAssessmentAttemptsQuerySchema,
 } from './attempt.schema.js';
 
-// ============ Router anidado en assessments: /assessments/:assessmentId/attempts
+//  Router anidado en assessments: /assessments/:assessmentId/attempts
 export const assessmentAttemptsRouter = Router({ mergeParams: true });
 assessmentAttemptsRouter.use(authMiddleware);
 
@@ -28,7 +28,7 @@ assessmentAttemptsRouter.get(
   asyncHandler(controller.listByAssessment)
 );
 
-// ============ Router plano: /attempts/:id
+//  Router plano: /attempts/:id
 const router = Router();
 router.use(authMiddleware);
 
@@ -60,7 +60,7 @@ router.patch(
 
 export default router;
 
-// ============ Router plano: /me/attempts
+//  Router plano: /me/attempts
 export const meAttemptsRouter = Router();
 meAttemptsRouter.use(authMiddleware);
 

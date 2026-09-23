@@ -22,7 +22,7 @@ const optionSchema = z.object({
   order: z.number().int().min(0),
 });
 
-// ============ FILL_IN_THE_BLANKS ============
+//  FILL_IN_THE_BLANKS 
 const fillBlanksPayloadSchema = z.object({
   blanks: z
     .array(
@@ -35,7 +35,7 @@ const fillBlanksPayloadSchema = z.object({
     .min(1, 'At least one blank is required'),
 });
 
-// ============ DROPDOWN ============
+//  DROPDOWN 
 const dropdownPayloadSchema = z.object({
   template: z.string().min(1, 'Template is required'),
   dropdowns: z
@@ -49,7 +49,7 @@ const dropdownPayloadSchema = z.object({
     .min(1, 'At least one dropdown is required'),
 });
 
-// ============ REORDER ============
+//  REORDER 
 const reorderPayloadSchema = z.object({
   items: z
     .array(
@@ -62,7 +62,7 @@ const reorderPayloadSchema = z.object({
     .min(2, 'REORDER requires at least 2 items'),
 });
 
-// ============ MATCH_PAIRS ============
+//  MATCH_PAIRS 
 const matchPairsPayloadSchema = z.object({
   pairs: z
     .array(
@@ -75,7 +75,7 @@ const matchPairsPayloadSchema = z.object({
     .min(2, 'MATCH_PAIRS requires at least 2 pairs'),
 });
 
-// ============ CATEGORIZE ============
+//  CATEGORIZE 
 const categorizePayloadSchema = z
   .object({
     categories: z
@@ -109,7 +109,7 @@ const categorizePayloadSchema = z
     });
   });
 
-// ============ DRAG_AND_DROP ============
+//  DRAG_AND_DROP 
 const dragAndDropPayloadSchema = z
   .object({
     targets: z
@@ -156,7 +156,7 @@ const dragAndDropPayloadSchema = z
     });
   });
 
-// ============ TABLE_FILL ============
+//  TABLE_FILL 
 const tableFillPayloadSchema = z.object({
   headers: z
     .array(z.string().min(1, 'Header text is required'))
@@ -178,7 +178,7 @@ const tableFillPayloadSchema = z.object({
     .min(1, 'TABLE_FILL requires at least 1 row'),
 });
 
-// ============ MATCHING_GRID ============
+//  MATCHING_GRID 
 const matchingGridPayloadSchema = z
   .object({
     rows: z
@@ -389,7 +389,7 @@ export const createQuestionSchema = z
       }
     }
 
-    // ============ Reglas comunes ============
+    //  Reglas comunes 
     const noOptionsTypes = [
       'TRUE_FALSE',
       'OPEN_ANSWER',
