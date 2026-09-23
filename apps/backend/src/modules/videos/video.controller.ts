@@ -3,6 +3,7 @@ import * as service from './video.service.js';
 import { getStorage } from './storage/storage.factory.js';
 import { BadRequestError, UnauthorizedError } from '../../shared/errors/http-error.js';
 import { issueTicket, validateTicket } from './stream-ticket.service.js';
+import { eventBus, EVENTS } from '../../shared/events/event-bus.js';
 
 export async function listBySubmodule(req: Request, res: Response): Promise<void> {
   const videos = await service.listBySubmodule(req.params.submoduleId);
@@ -49,7 +50,6 @@ export async function remove(req: Request, res: Response): Promise<void> {
 }
 
 export async function generateStreamTicket(req: Request, res: Response): Promise<void> {
-  // Verifica que el video existe antes de dar un ticket
   const video = await service.getById(req.params.id);
 
   const { ticket, expiresIn } = issueTicket(req.user!.id, video.id);
@@ -61,7 +61,6 @@ export async function generateStreamTicket(req: Request, res: Response): Promise
 }
 
 export async function stream(req: Request, res: Response): Promise<void> {
-  // Validar ticket desde query string
   const ticket = req.query.ticket as string | undefined;
 
   if (!ticket) {
@@ -134,5 +133,11 @@ export async function stream(req: Request, res: Response): Promise<void> {
 export async function screenshotAttempt(req: Request, res: Response): Promise<void> {
   const userAgent = req.headers['user-agent'];
   await service.recordScreenshotAttempt(req.params.id, req.user!.id, userAgent);
+
+  await eventBus.emit(EVENTS.SCREENSHOT_ATTEMPT, {
+    userId: req.user!.id,
+    videoId: req.params.id,
+  });
+
   res.status(204).send();
 }

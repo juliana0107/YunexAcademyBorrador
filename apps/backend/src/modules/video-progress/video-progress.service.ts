@@ -7,6 +7,7 @@ import type {
   VideoProgressSummary,
 } from './video-progress.types.js';
 import type { UpsertProgressInput } from './video-progress.schema.js';
+import { eventBus, EVENTS } from '../../shared/events/event-bus.js';
 
 const COMPLETION_THRESHOLD = 0.9; // 90%
 
@@ -59,6 +60,11 @@ export async function upsertProgress(
     totalSeconds: input.totalSeconds,
     completed,
   });
+
+  await eventBus.emit(EVENTS.VIDEO_PROGRESS_UPDATED, {
+  userId,
+  videoId,
+});
 
   return toItem(record);
 }

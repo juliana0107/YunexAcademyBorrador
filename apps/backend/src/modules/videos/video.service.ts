@@ -20,6 +20,7 @@ import type {
   VideoDetail,
   VideoListItem,
 } from './video.types.js';
+import { eventBus, EVENTS } from '../../shared/events/event-bus.js';
 
 const ALLOWED_MIME_TYPES = new Set([
   'video/mp4',
@@ -133,6 +134,8 @@ export async function upload(
   await repo.recalculateSubmoduleDuration(input.submoduleId);
   await repo.recalculateCourseDuration(courseId);
 
+  await eventBus.emit(EVENTS.VIDEO_UPLOADED, { videoId: created.id });
+
   return toDetail(created);
 }
 
@@ -176,17 +179,16 @@ export async function remove(id: string): Promise<void> {
 
   await assertSubmoduleEditable(existing.submoduleId);
 
-  // Eliminar del storage primero (ignora si no existe)
   const storage = getStorage();
   await storage.delete(existing.storagePath);
 
-  // Eliminar de la DB
   await repo.remove(id);
 
-  // Recalcular duraciones
   await repo.recalculateSubmoduleDuration(existing.submoduleId);
   const courseId = await repo.getSubmoduleCourseId(existing.submoduleId);
   if (courseId) await repo.recalculateCourseDuration(courseId);
+
+  await eventBus.emit(EVENTS.VIDEO_DELETED, { videoId: id });
 }
 
 export async function getStreamInfo(id: string): Promise<{
