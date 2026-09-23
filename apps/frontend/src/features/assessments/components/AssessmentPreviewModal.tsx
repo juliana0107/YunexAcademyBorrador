@@ -1,6 +1,10 @@
 import { X, Clock, CheckSquare } from 'lucide-react';
-import type { AssessmentListItem, QuestionListItem } from '../types/assessment.types';
+import type {
+  AssessmentListItem,
+  QuestionListItem,
+} from '../types/assessment.types';
 import { QuestionTypeBadge } from './QuestionTypeBadge';
+import { QuestionPreview } from './QuestionPreview';
 
 interface Props {
   isOpen: boolean;
@@ -9,7 +13,12 @@ interface Props {
   onClose: () => void;
 }
 
-export function AssessmentPreviewModal({ isOpen, assessment, questions, onClose }: Props) {
+export function AssessmentPreviewModal({
+  isOpen,
+  assessment,
+  questions,
+  onClose,
+}: Props) {
   if (!isOpen) return null;
 
   return (
@@ -89,7 +98,8 @@ export function AssessmentPreviewModal({ isOpen, assessment, questions, onClose 
                       <div className="flex items-center gap-2 mb-2">
                         <QuestionTypeBadge type={question.type} />
                         <span className="text-xs text-gray-500">
-                          {question.points} punto{question.points !== 1 ? 's' : ''}
+                          {question.points} punto
+                          {question.points !== 1 ? 's' : ''}
                         </span>
                       </div>
                       <p className="text-base text-gray-900 font-medium">
@@ -98,72 +108,7 @@ export function AssessmentPreviewModal({ isOpen, assessment, questions, onClose 
                     </div>
                   </div>
 
-                  {/* SINGLE / MULTIPLE */}
-                  {question.options && question.options.length > 0 && (
-                    <div className="ml-11 space-y-2">
-                      {question.options.map((opt, i) => (
-                        <label
-                          key={opt.id ?? i}
-                          className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-brand-300 cursor-pointer transition-colors"
-                        >
-                          <input
-                            type={question.type === 'SINGLE_CHOICE' ? 'radio' : 'checkbox'}
-                            name={`q-${question.id}`}
-                            disabled
-                            className="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500"
-                          />
-                          <span className="text-sm text-gray-800">{opt.text}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* TRUE_FALSE */}
-                  {question.type === 'TRUE_FALSE' && (
-                    <div className="ml-11 space-y-2">
-                      <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`q-${question.id}`}
-                          disabled
-                          className="w-4 h-4 text-brand-600 border-gray-300"
-                        />
-                        <span className="text-sm text-gray-800">Verdadero</span>
-                      </label>
-                      <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`q-${question.id}`}
-                          disabled
-                          className="w-4 h-4 text-brand-600 border-gray-300"
-                        />
-                        <span className="text-sm text-gray-800">Falso</span>
-                      </label>
-                    </div>
-                  )}
-
-                  {/* OPEN_ANSWER */}
-                  {question.type === 'OPEN_ANSWER' && (
-                    <div className="ml-11">
-                      <textarea
-                        rows={4}
-                        disabled
-                        placeholder="Tu respuesta..."
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 resize-none"
-                      />
-                      {(question.payload.minWords !== undefined ||
-                        question.payload.maxWords !== undefined) && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {question.payload.minWords !== undefined && (
-                            <>Mín. {String(question.payload.minWords)} palabras </>
-                          )}
-                          {question.payload.maxWords !== undefined && (
-                            <>· Máx. {String(question.payload.maxWords)} palabras</>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  <QuestionPreview question={question} />
                 </div>
               ))
             )}

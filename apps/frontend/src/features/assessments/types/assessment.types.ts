@@ -1,10 +1,12 @@
-export type AssessmentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+import type {
+  AssessmentStatus,
+  QuestionType,
+} from '@yunexacademy/shared-types';
 
-export type QuestionType =
-  | 'SINGLE_CHOICE'
-  | 'MULTIPLE_CHOICE'
-  | 'TRUE_FALSE'
-  | 'OPEN_ANSWER';
+// Re-export para que el feature siga importando desde aquí
+export type { AssessmentStatus, QuestionType };
+
+// ============ ASSESSMENT DTOs ============
 
 export interface AssessmentListItem {
   id: string;
@@ -18,26 +20,6 @@ export interface AssessmentListItem {
   timeLimitMinutes: number | null;
   shuffleQuestions: boolean;
   questionCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface QuestionOptionData {
-  id?: string;
-  text: string;
-  isCorrect: boolean;
-  order: number;
-}
-
-export interface QuestionListItem {
-  id: string;
-  assessmentId: string;
-  type: QuestionType;
-  statement: string;
-  points: number;
-  order: number;
-  options: QuestionOptionData[] | null;
-  payload: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +42,28 @@ export interface UpdateAssessmentInput {
   maxAttempts?: number;
   timeLimitMinutes?: number | null;
   shuffleQuestions?: boolean;
+}
+
+// ============ QUESTION DTOs ============
+
+export interface QuestionOptionData {
+  id?: string;
+  text: string;
+  isCorrect: boolean;
+  order: number;
+}
+
+export interface QuestionListItem {
+  id: string;
+  assessmentId: string;
+  type: QuestionType;
+  statement: string;
+  points: number;
+  order: number;
+  options: QuestionOptionData[] | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateQuestionInput {

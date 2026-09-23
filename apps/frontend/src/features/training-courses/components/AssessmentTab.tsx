@@ -1,11 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Plus, ClipboardList } from 'lucide-react';
 import type { AssessmentStatus } from '@yunexacademy/shared-types';
 import { useAssessments } from '@/features/assessments/hooks/useAssessments';
-import {
-  useChangeAssessmentStatus,
-  useDeleteAssessment,
-} from '@/features/assessments/hooks/useAssessmentMutations';
+import { useDeleteAssessment } from '@/features/assessments/hooks/useAssessmentMutations';
 import { AssessmentCard } from '@/features/assessments/components/AssessmentCard';
 import { AssessmentFormModal } from '@/features/assessments/components/AssessmentFormModal';
 import { AssessmentDeleteDialog } from '@/features/assessments/components/AssessmentDeleteDialog';
@@ -20,7 +17,6 @@ interface Props {
 
 export function AssessmentTab({ courseId, canEdit, courseIsArchived }: Props) {
   const { data: assessments = [], isLoading } = useAssessments(courseId);
-  const statusMutation = useChangeAssessmentStatus('', courseId);
   const deleteMutation = useDeleteAssessment(courseId);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -34,7 +30,7 @@ export function AssessmentTab({ courseId, canEdit, courseIsArchived }: Props) {
   ): Promise<void> {
     try {
       // Creamos un mutation ad-hoc usando el hook original
-      // Como el hook está atado a un id, hacemos un fallback usando el API directo
+      // Como el hook estÃ¡ atado a un id, hacemos un fallback usando el API directo
       const { changeAssessmentStatus } = await import(
         '@/features/assessments/api/assessments.api'
       );
@@ -78,7 +74,7 @@ export function AssessmentTab({ courseId, canEdit, courseIsArchived }: Props) {
             className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Nueva evaluación
+            Nueva evaluaciÃ³n
           </button>
         )}
       </div>
@@ -99,7 +95,7 @@ export function AssessmentTab({ courseId, canEdit, courseIsArchived }: Props) {
             <ClipboardList className="w-6 h-6 text-purple-500" />
           </div>
           <p className="text-gray-500 mb-4">
-            Este curso aún no tiene evaluaciones
+            Este curso aÃºn no tiene evaluaciones
           </p>
           {canEdit && !courseIsArchived && (
             <button
@@ -110,7 +106,7 @@ export function AssessmentTab({ courseId, canEdit, courseIsArchived }: Props) {
               className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Crear la primera evaluación
+              Crear la primera evaluaciÃ³n
             </button>
           )}
         </div>

@@ -1,5 +1,6 @@
-import { Pencil, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { QuestionTypeBadge } from './QuestionTypeBadge';
+import { QuestionSummary } from './QuestionSummary';
 import type { QuestionListItem } from '../types/assessment.types';
 
 interface Props {
@@ -10,7 +11,13 @@ interface Props {
   onDelete: (question: QuestionListItem) => void;
 }
 
-export function QuestionList({ questions, isLoading, canEdit, onEdit, onDelete }: Props) {
+export function QuestionList({
+  questions,
+  isLoading,
+  canEdit,
+  onEdit,
+  onDelete,
+}: Props) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
@@ -48,46 +55,7 @@ export function QuestionList({ questions, isLoading, canEdit, onEdit, onDelete }
               <p className="text-sm font-medium text-gray-900 mb-3">
                 {question.statement}
               </p>
-
-              {/* Opciones para SINGLE / MULTIPLE */}
-              {question.options && question.options.length > 0 && (
-                <ul className="space-y-1.5">
-                  {question.options.map((opt, i) => (
-                    <li
-                      key={opt.id ?? i}
-                      className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${
-                        opt.isCorrect
-                          ? 'bg-green-50 text-green-800 font-medium'
-                          : 'bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      {opt.isCorrect ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      )}
-                      {opt.text}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {/* TRUE_FALSE */}
-              {question.type === 'TRUE_FALSE' && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Respuesta correcta:{' '}
-                  <strong className="text-green-700">
-                    {question.payload.correctAnswer ? 'Verdadero' : 'Falso'}
-                  </strong>
-                </p>
-              )}
-
-              {/* OPEN_ANSWER */}
-              {question.type === 'OPEN_ANSWER' && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Requiere revisión manual del instructor
-                </p>
-              )}
+              <QuestionSummary question={question} />
             </div>
 
             {canEdit && (
