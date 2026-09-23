@@ -1,5 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
-import { NoDataState } from './NoDataState';
+﻿import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
 
 interface Props {
