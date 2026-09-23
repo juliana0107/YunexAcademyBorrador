@@ -19,6 +19,7 @@ import type {
   ListMyAttemptsQuery,
   GradeOpenAnswerInput,
 } from './attempt.schema.js';
+import { eventBus, EVENTS } from '../../../shared/events/event-bus.js';
 
 // ============ HELPERS ============
 
@@ -95,7 +96,6 @@ function computeExpiresAt(
 
 function isExpired(expiresAt: Date | null): boolean {
   if (!expiresAt) return false;
-  // Damos 30 segundos de gracia para el submit
   return Date.now() > expiresAt.getTime() + 30_000;
 }
 
@@ -105,7 +105,6 @@ async function buildStartResult(
   const assessment = await getAssessmentContext(attempt.assessmentId);
   const expiresAt = computeExpiresAt(attempt.startedAt, assessment.timeLimitMinutes);
 
-  // Cargar las preguntas en el orden guardado en question_order
   const allQuestions = await repo.getQuestionsForAssessment(attempt.assessmentId);
   const questionMap = new Map(allQuestions.map((q) => [q.id, q]));
 
@@ -113,7 +112,6 @@ async function buildStartResult(
     .map((id) => questionMap.get(id))
     .filter((q): q is NonNullable<typeof q> => q !== undefined);
 
-  // Si el question_order está vacío (fallback), usar el orden natural
   const finalQuestions = orderedQuestions.length > 0 ? orderedQuestions : allQuestions;
 
   return {
@@ -144,14 +142,12 @@ export async function startAttempt(
 
   const inProgress = await repo.findInProgressAttempt(assessmentId, userId);
   if (inProgress) {
-    // Verificar si expiró y auto-submit
     const expiresAt = computeExpiresAt(
       inProgress.startedAt,
       assessment.timeLimitMinutes
     );
     if (isExpired(expiresAt)) {
       await submitAttemptInternal(inProgress, true);
-      // Después de submit, permitimos crear un nuevo intento
     } else {
       return buildStartResult(inProgress);
     }
@@ -218,13 +214,11 @@ export async function saveAnswer(
     throw new ConflictError('Attempt has expired and was auto-submitted');
   }
 
-  // Verificar que la pregunta pertenece al intento
   const attemptAnswer = await repo.findAnswer(attemptId, questionId);
   if (!attemptAnswer) {
     throw new NotFoundError('Question does not belong to this attempt');
   }
 
-  // Validar el formato de la respuesta según el tipo
   const question = await repo.getFullQuestionById(questionId);
   if (!question) throw new NotFoundError('Question not found');
 
@@ -255,7 +249,6 @@ export async function submitAttempt(
     return submitAttemptInternal(attempt, isExpired(expiresAt));
   }
 
-  // Ya fue enviado: devolver el resultado (idempotente)
   return buildSubmitResult(attempt);
 }
 
@@ -263,7 +256,6 @@ async function submitAttemptInternal(
   attempt: repo.AttemptRecord,
   expired: boolean
 ): Promise<SubmitResult> {
-  // Cargar todas las respuestas con sus preguntas
   const items = await repo.listAnswersWithQuestions(attempt.id);
 
   let totalPointsPossible = 0;
@@ -277,7 +269,6 @@ async function submitAttemptInternal(
 
     const result = gradeAnswer(question, answer.answer);
 
-    // Actualizar la fila de la respuesta
     await repo.gradeAnswer(attempt.id, answer.questionId, {
       isCorrect: result.isCorrect,
       pointsEarned: result.pointsEarned,
@@ -318,7 +309,28 @@ async function submitAttemptInternal(
   });
 
   if (!updated) throw new NotFoundError('Attempt not found');
-  return buildSubmitResult(updated);
+
+  await eventBus.emit(EVENTS.ATTEMPT_SUBMITTED, {
+    attemptId: attempt.id,
+    userId: attempt.userId,
+    score,
+    passed,
+  });
+
+  // Devuelve el SubmitResult con contadores reales
+  return {
+    attemptId: updated.id,
+    score,
+    passed,
+    passingScore: updated.passingScore,
+    status: updated.status,
+    correctCount,
+    incorrectCount,
+    pendingCount,
+    totalQuestions: items.length,
+    submittedAt: now.toISOString(),
+    gradedAt: updated.gradedAt?.toISOString() ?? null,
+  };
 }
 
 function buildSubmitResult(attempt: repo.AttemptRecord): SubmitResult {
@@ -328,7 +340,7 @@ function buildSubmitResult(attempt: repo.AttemptRecord): SubmitResult {
     passed: attempt.passed,
     passingScore: attempt.passingScore,
     status: attempt.status,
-    correctCount: 0, // se rellenan en el submit real
+    correctCount: 0,
     incorrectCount: 0,
     pendingCount: 0,
     totalQuestions: 0,
@@ -382,7 +394,6 @@ export async function gradeOpenAnswer(
     feedback: input.feedback ?? null,
   });
 
-  // Recalcular el score total
   const allAnswers = await repo.listAnswersByAttempt(attemptId);
   let totalPointsPossible = 0;
   let totalPointsEarned = 0;
@@ -408,7 +419,12 @@ export async function gradeOpenAnswer(
     gradedAt: pendingCount === 0 ? new Date() : undefined,
   });
 
-  // Devolver el detalle actualizado
+  await eventBus.emit(EVENTS.ATTEMPT_GRADED, {
+    attemptId,
+    score: newScore,
+    passed: newPassed,
+  });
+
   const updatedAttempt = await repo.findAttemptById(attemptId);
   if (!updatedAttempt) throw new NotFoundError('Attempt not found');
 
@@ -432,7 +448,6 @@ export async function getAttempt(
     throw new ForbiddenError('You cannot view this attempt');
   }
 
-  // Auto-submit si expiró
   if (attempt.status === 'IN_PROGRESS') {
     const assessment = await getAssessmentContext(attempt.assessmentId);
     const expiresAt = computeExpiresAt(attempt.startedAt, assessment.timeLimitMinutes);

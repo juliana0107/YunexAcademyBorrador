@@ -15,6 +15,7 @@ import type {
   TrainingCourseDetail,
 } from './training-course.types.js';
 import type { TrainingCourseStatus } from '@yunexacademy/shared-types';
+import { eventBus, EVENTS } from '../../shared/events/event-bus.js';
 
 export async function list(
   query: ListTrainingCoursesQuery
@@ -54,6 +55,9 @@ export async function create(
     thumbnailUrl: input.thumbnailUrl ?? null,
     createdBy,
   });
+
+  await eventBus.emit(EVENTS.COURSE_CREATED, { courseId: created.id });
+
   return toDetail(created);
 }
 
@@ -76,6 +80,9 @@ export async function update(
   });
 
   if (!updated) throw new NotFoundError('Training course not found');
+
+  await eventBus.emit(EVENTS.COURSE_UPDATED, { courseId: id });
+
   return toDetail(updated);
 }
 
@@ -107,6 +114,9 @@ export async function changeStatus(
 
   const updated = await repo.changeStatus(id, status);
   if (!updated) throw new NotFoundError('Training course not found');
+
+  await eventBus.emit(EVENTS.COURSE_UPDATED, { courseId: id });
+
   return toDetail(updated);
 }
 
@@ -121,4 +131,6 @@ export async function remove(id: string): Promise<void> {
   }
 
   await repo.remove(id);
+
+  await eventBus.emit(EVENTS.COURSE_DELETED, { courseId: id });
 }

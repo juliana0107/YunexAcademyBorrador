@@ -1,4 +1,5 @@
 import { env } from '../../../config/env.config.js';
+import { eventBus, EVENTS } from '../../../shared/events/event-bus.js';
 import type { DashboardData } from '../dashboard.types.js';
 
 interface CacheEntry {
@@ -46,3 +47,23 @@ setInterval(() => {
     }
   }
 }, 60_000).unref();
+
+// El dashboard se invalida automáticamente cuando cambian datos relevantes.
+
+const invalidateOnEvents = [
+  EVENTS.ATTEMPT_SUBMITTED,
+  EVENTS.ATTEMPT_GRADED,
+  EVENTS.COURSE_CREATED,
+  EVENTS.COURSE_UPDATED,
+  EVENTS.COURSE_DELETED,
+  EVENTS.USER_CREATED,
+  EVENTS.USER_UPDATED,
+  EVENTS.VIDEO_UPLOADED,
+  EVENTS.VIDEO_DELETED,
+  EVENTS.SCREENSHOT_ATTEMPT,
+  EVENTS.VIDEO_PROGRESS_UPDATED,
+];
+
+for (const event of invalidateOnEvents) {
+  eventBus.on(event, () => invalidateAll());
+}

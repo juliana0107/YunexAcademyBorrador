@@ -6,8 +6,14 @@ import {
 import { hashPassword, comparePassword } from '../../shared/utils/password.util.js';
 import * as repo from './user.repository.js';
 import { toDetail, toListItem } from './user.mapper.js';
-import type { CreateUserInput, ListUsersQuery, UpdateUserInput, ChangePasswordInput } from './user.schema.js';
+import type {
+  CreateUserInput,
+  ListUsersQuery,
+  UpdateUserInput,
+  ChangePasswordInput,
+} from './user.schema.js';
 import type { PaginatedUsers, UserDetail } from './user.types.js';
+import { eventBus, EVENTS } from '../../shared/events/event-bus.js';
 
 export async function list(query: ListUsersQuery): Promise<PaginatedUsers> {
   const { items, total } = await repo.list({
@@ -47,6 +53,8 @@ export async function create(input: CreateUserInput): Promise<UserDetail> {
     roles: input.roles,
   });
 
+  await eventBus.emit(EVENTS.USER_CREATED, { userId: created.id });
+
   return toDetail(created);
 }
 
@@ -58,7 +66,6 @@ export async function update(
   const existing = await repo.findById(id);
   if (!existing) throw new NotFoundError('User not found');
 
-  // Regla: no puedes quitarte tu propio rol ADMIN
   if (id === currentUserId && input.roles !== undefined) {
     const losesAdmin = existing.roles.includes('ADMIN') && !input.roles.includes('ADMIN');
     if (losesAdmin) {
@@ -75,11 +82,13 @@ export async function update(
   });
 
   if (!updated) throw new NotFoundError('User not found');
+
+  await eventBus.emit(EVENTS.USER_UPDATED, { userId: id });
+
   return toDetail(updated);
 }
 
 export async function remove(id: string, currentUserId: string): Promise<void> {
-  // Regla: no puedes eliminarte a ti mismo
   if (id === currentUserId) {
     throw new ForbiddenError('You cannot delete your own user');
   }
@@ -88,6 +97,8 @@ export async function remove(id: string, currentUserId: string): Promise<void> {
   if (!existing) throw new NotFoundError('User not found');
 
   await repo.remove(id);
+
+  await eventBus.emit(EVENTS.USER_UPDATED, { userId: id });
 }
 
 export async function changeOwnPassword(
