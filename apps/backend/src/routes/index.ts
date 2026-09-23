@@ -24,6 +24,7 @@ import attemptRoutes, {
   assessmentAttemptsRouter,
   meAttemptsRouter,
 } from '../modules/assessments/attempts/attempt.routes.js';
+import dashboardRoutes from '../modules/dashboard/dashboard.routes.js';
 
 const router = Router();
 
@@ -45,5 +46,6 @@ router.use('/assessments/:assessmentId/questions', assessmentQuestionsRouter);
 router.use('/assessments/:assessmentId/attempts', assessmentAttemptsRouter);
 router.use('/questions', questionRoutes);
 router.use('/attempts', attemptRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router;
