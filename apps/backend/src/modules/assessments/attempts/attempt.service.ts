@@ -429,8 +429,7 @@ export async function gradeOpenAnswer(
   if (!updatedAttempt) throw new NotFoundError('Attempt not found');
 
   const answers = await repo.listAnswersByAttempt(attemptId);
-  const assessment = await getAssessmentContext(updatedAttempt.assessmentId);
-
+  
   return toDetail(updatedAttempt, answers, true);
 }
 
