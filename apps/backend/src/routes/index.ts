@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRoutes from '../modules/auth/auth.routes.js';
 import userRoutes from '../modules/users/user.routes.js';
+import roleRoutes from '../modules/roles/role.routes.js';
+import permissionRoutes from '../modules/permissions/permission.routes.js';
 import trainingCourseRoutes from '../modules/training-courses/training-course.routes.js';
 import submoduleRoutes, {
   courseSubmodulesRouter,
@@ -30,6 +32,8 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/roles', roleRoutes);
+router.use('/permissions', permissionRoutes);
 router.use('/training-courses', trainingCourseRoutes);
 router.use('/training-courses/:courseId/submodules', courseSubmodulesRouter);
 router.use('/training-courses/:courseId/assessments', courseAssessmentsRouter);
