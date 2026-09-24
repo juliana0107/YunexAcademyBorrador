@@ -1,4 +1,5 @@
-﻿import type { LucideIcon } from 'lucide-react';
+
+import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
 
 interface Props {
