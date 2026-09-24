@@ -1,5 +1,5 @@
 import { AppError } from './app-error.js';
-import { ErrorCode } from './error-codes.js';
+import { ErrorCode, type ErrorCodeType } from './error-codes.js';
 
 export class BadRequestError extends AppError {
   constructor(message = 'Bad request', details?: Record<string, unknown>) {
@@ -8,7 +8,10 @@ export class BadRequestError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized', code = ErrorCode.AUTH_TOKEN_INVALID) {
+  constructor(
+    message = 'Unauthorized',
+    code: ErrorCodeType = ErrorCode.AUTH_TOKEN_INVALID
+  ) {
     super(message, 401, code);
   }
 }

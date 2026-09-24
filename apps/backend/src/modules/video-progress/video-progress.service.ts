@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError } from '../../shared/errors/http-error.js';
+import { BadRequestError } from '../../shared/errors/http-error.js';
 import * as repo from './video-progress.repository.js';
 import type {
   VideoProgressItem,

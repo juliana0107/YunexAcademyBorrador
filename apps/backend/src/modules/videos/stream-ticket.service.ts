@@ -66,7 +66,7 @@ export function validateTicket(ticket: string, videoId: string): ValidatedTicket
   };
 }
 
-export function consumeTicket(ticket: string): void {
+export function consumeTicket(_ticket: string): void {
   // Opcional: no consumir porque el player puede pedir múltiples ranges
   // del mismo video con el mismo ticket. Solo expira por tiempo.
   // tickets.delete(ticket);
