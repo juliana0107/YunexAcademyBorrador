@@ -10,7 +10,6 @@ import {
   createVideoSchema,
   updateVideoSchema,
   changeVideoOrderSchema,
-  listVideosQuerySchema,
 } from './video.schema.js';
 
 const upload = multer({
