@@ -13,6 +13,7 @@ build
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # Logs
 *.log
@@ -23,24 +24,20 @@ coverage
 **/coverage
 
 # Editor
-.vscode
+.vscode/*
+!.vscode/extensions.json
 .idea
 *.swp
 .DS_Store
-
-# Git
-.git
-.gitignore
-.github
-
-# Docker (los compose no van al build)
-docker-compose*.yml
 
 # Uploads locales (los reales van al volumen)
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
 
-# Docs
-docs
-README.md
-*.md
+# Docs (opcional: si prefieres versionar docs, quita esta línea)
+# docs
+
+# Ignorar archivos de debug temporales
+typecheck-errors*.txt
+attempt.json
+upload.json

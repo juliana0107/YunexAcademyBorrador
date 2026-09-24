@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yunex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: yunex
+      POSTGRES_PASSWORD: yunex
+      POSTGRES_DB: yunex_academy
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yunex -d yunex_academy"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yunex-net
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    container_name: yunex-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://yunex:yunex@postgres:5432/yunex_academy
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-min-32-characters-long}
+      JWT_EXPIRES_IN: 1d
+      BCRYPT_ROUNDS: 10
+      UPLOAD_DIR: ./uploads
+      MAX_VIDEO_SIZE_MB: 500
+      DASHBOARD_CACHE_TTL: 30
+      CORS_ORIGIN: http://localhost:5173
+      LOG_LEVEL: info
+    ports:
+      - "4000:4000"
+    volumes:
+      - uploads-data:/app/apps/backend/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - yunex-net
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    container_name: yunex-web
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - yunex-net
+
+volumes:
+  postgres-data:
+  uploads-data:
+
+networks:
+  yunex-net:
+    driver: bridge
